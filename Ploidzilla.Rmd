@@ -1337,7 +1337,7 @@ dev.off()
 
 ### Feeding trials
 ```{r}
-feed<-read.csv("data/tank_feeding.csv")
+feed<-read.csv("data/feeding.csv")
 feed.simple<- feed %>% select(treatment, tank, genotype, ploidy, plug.ID, 
                           prey.capture.h, surface.area.cm2, prey.cap.h.cm2)
 
@@ -1389,6 +1389,53 @@ feed.plot<-ggplot(feed.df, aes(treatment, prey.cap.h.cm2, fill=ploidy)) +
 feed.plot
 dev.copy(pdf, "figures/feeding rate_tank.pdf", width = 6, height = 7)
 dev.off()
+
+```
+
+
+### Respiration and Photosynthesis
+```{r}
+resp = read.csv("output/resp_rates.csv")
+pnet = read.csv("output/pnet_rates.csv")
+
+resp = resp %>% select(plug.ID, run, rerun, tank.treatment, tank.ID, resp.bg.corr)
+pnet = pnet %>% select(plug.ID, run, rerun, tank.treatment, tank.ID, pnet.bg.corr)
+
+#add column for ploidy from metadata
+pnet = pnet %>%
+  left_join(feed.simple %>% select(plug.ID, ploidy),
+            by = "plug.ID")
+
+resp = resp %>%
+  left_join(feed.simple %>% select(plug.ID, ploidy),
+            by = "plug.ID")
+
+#remove weird sample (may need to remove others this one just jumped out)
+pnet = pnet %>% filter(!plug.ID %in% c("25"))
+resp = resp %>% filter(!plug.ID %in% c("25"))
+
+# resp boxplot
+resp.plot = ggplot(resp, aes(tank.treatment, resp.bg.corr, fill = ploidy)) +
+ geom_point(aes(color=ploidy), alpha=0.7, position=position_jitterdodge()) +
+  geom_boxplot(outlier.shape = NA, alpha=0.7) +
+  ylab(expression(paste("Corrected dark respiration rate (umol/L/min)"))) +
+  xlab("Treatment")+ theme_bw() +
+  scale_fill_manual(values=c("goldenrod", "plum4")) +
+  scale_color_manual(values=c("goldenrod", "plum4"))
+resp.plot
+
+#pnet boxplot
+pnet.plot = ggplot(pnet, aes(tank.treatment, pnet.bg.corr, fill = ploidy)) +
+ geom_point(aes(color=ploidy), alpha=0.7, position=position_jitterdodge()) +
+  geom_boxplot(outlier.shape = NA, alpha=0.7) +
+  ylab(expression(paste("Corrected net photosynthesis rate (umol/L/min)"))) +
+  xlab("Treatment")+ theme_bw() +
+  scale_fill_manual(values=c("goldenrod", "plum4")) +
+  scale_color_manual(values=c("goldenrod", "plum4"))
+pnet.plot
+
+ggsave("figures/resp_boxplot.pdf", plot = resp.plot)
+ggsave("figures/pnet_boxplot.pdf", plot = pnet.plot)
 
 ```
 

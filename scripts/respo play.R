@@ -13,7 +13,7 @@
 # load packages
 if (!require("pacman")) install.packages("pacman") # for rapid install if not in library
 # use pacman to load all the packages you are missing!
-pacman::p_load("respR", "hms")
+pacman::p_load("respR", "hms", "tidyverse")
 
 ########### import data csv from software
 r.dat<-read.csv("data/respirometry all days.csv", skip=1) # skip top line from export
@@ -101,6 +101,20 @@ merge.dat <- merge.dat %>% group_by(plug.ID) %>%
 merge.dat<- merge.dat %>%
   select(date, day, run, time, log.seq, time.min, channel, tank.ID, tank.treatment, plug.ID, 
          O2, O2.unit, temp.C, salinity)
+
+#summarize runs and units so I can check which ones need conversion
+merge.dat %>% group_by(run, O2.unit) %>%
+    summarise(n = n(), min.O2 = min(O2), max.O2 = max(O2), .groups = "drop") %>%
+    print(n = Inf)
+
+#convert %a.s. into umol/L
+merge.dat <- merge.dat %>%
+  ungroup() %>%
+  mutate(O2 = ifelse(O2.unit == "%a.s.",
+                     convert_DO(O2, from = "%Air", to = "umol/L",
+                                S = salinity, t = temp.C),
+                     O2),
+         O2.unit = "μmol/L")
 
 write.csv(merge.dat, "output/cleaned_resp_dat.csv")
 
@@ -205,7 +219,7 @@ output_list[[7]]<-calc$summary
 ## run a sample
 var<-colnames(df[,9]) # set your column each time
 insp<-inspect(df, time = "time.min", oxygen = var)
-calc<-calc_rate(insp, from = 5, to = 20, by = "time")
+calc<-calc_rate(insp, from = 8, to = 20, by = "time")
 output_list[[8]]<-calc$summary
 
 ## run a sample
@@ -550,6 +564,270 @@ run11_wide<-na.omit(run11_wide)
 # select(time.min,starts_with("run.13"))
 # run13_wide<-na.omit(run13_wide) 
 
+######## ######## #####
+######## run 1 ######## 
+######## ######## #####
+
+#metadata seems like this run had only 11 mins in the dark? 
+
+# resp output
+out.ls.run.1.resp <- vector("list")
+
+# pnet output
+out.ls.run.1.pnet <- vector("list")
+
+# define df and see how many column you have, this will be your length of the list
+df<-run1_wide
+ncol(df) 
+
+## column 1: run.1_66
+## run a sample for R, then P
+var<-colnames(df[2]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 11, by = "time") #this one looks crazy
+calcP<-calc_rate(insp, from = 23, to = 30, by = "time")
+
+out.ls.run.1.resp[[1]]<-calcR$summary
+out.ls.run.1.pnet[[1]]<-calcP$summary
+
+## column 2: run.1_37
+var<-colnames(df[3]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time") #flat
+calcP<-calc_rate(insp, from = 20, to = 30, by = "time")
+
+out.ls.run.1.resp[[2]]<-calcR$summary
+out.ls.run.1.pnet[[2]]<-calcP$summary
+
+## column 3: run.1_3
+var<-colnames(df[4]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var) 
+
+calcR<-calc_rate(insp, from = 5, to = 10, by = "time")
+calcP<-calc_rate(insp, from = 20, to = 30, by = "time")
+
+out.ls.run.1.resp[[3]]<-calcR$summary
+out.ls.run.1.pnet[[3]]<-calcP$summary
+
+## column 4: run.1_25
+var<-colnames(df[5]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 10, by = "time") #also crazy
+calcP<-calc_rate(insp, from = 22, to = 30, by = "time")
+
+out.ls.run.1.resp[[4]]<-calcR$summary
+out.ls.run.1.pnet[[4]]<-calcP$summary
+
+## column 5: run.1_15
+var<-colnames(df[6]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 10, by = "time") #also crazy
+calcP<-calc_rate(insp, from = 23, to = 29, by = "time")
+
+out.ls.run.1.resp[[5]]<-calcR$summary
+out.ls.run.1.pnet[[5]]<-calcP$summary
+
+## column 6: run.1_5
+var<-colnames(df[7]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 10, by = "time") #flat
+calcP<-calc_rate(insp, from = 20, to = 28, by = "time")
+
+out.ls.run.1.resp[[6]]<-calcR$summary
+out.ls.run.1.pnet[[6]]<-calcP$summary
+
+## column 7: run.1_36
+var<-colnames(df[8]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 10, by = "time")
+calcP<-calc_rate(insp, from = 21, to = 27, by = "time")
+
+out.ls.run.1.resp[[7]]<-calcR$summary
+out.ls.run.1.pnet[[7]]<-calcP$summary
+
+## column 8: run.1_49
+var<-colnames(df[9]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 10, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 25, by = "time")
+
+out.ls.run.1.resp[[8]]<-calcR$summary
+out.ls.run.1.pnet[[8]]<-calcP$summary
+
+## column 9: run.1_55
+var<-colnames(df[10]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 10, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 25, by = "time")
+
+out.ls.run.1.resp[[9]]<-calcR$summary
+out.ls.run.1.pnet[[9]]<-calcP$summary
+
+
+##### pull together for output
+names(out.ls.run.1.resp)<-colnames(run1_wide[-1])
+names(out.ls.run.1.pnet)<-colnames(run1_wide[-1])
+
+#combine outputs into a df and add names
+df_r1.resp<-data.frame(do.call(rbind, out.ls.run.1.resp))
+df_r1.resp<- df_r1.resp %>%
+  mutate(names= names(out.ls.run.1.resp),
+         sample.or.bg= "sample")
+
+df_r1.pnet<-data.frame(do.call(rbind, out.ls.run.1.pnet))
+df_r1.pnet<- df_r1.pnet %>%
+  mutate(names= names(out.ls.run.1.pnet),
+         sample.or.bg= "sample")
+
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run 1 is a heated run (can see info in "run.info")
+df_r1.resp$resp.bg.corr<- df_r1.resp$rate - bg.HT.rates.means
+df_r1.pnet$pnet.bg.corr<- df_r1.pnet$rate - bg.HT.rates.means
+
+
+
+
+######## ######## #####
+######## run 2 ######## 
+######## ######## #####
+
+# resp output
+out.ls.run.2.resp <- vector("list")
+
+# pnet output
+out.ls.run.2.pnet <- vector("list")
+
+# define df and see how many column you have, this will be your length of the list
+df<-run2_wide
+ncol(df) 
+
+## column 1: run.2_11
+## run a sample for R, then P
+var<-colnames(df[2]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 10, to = 20, by = "time") #no clear light/dark reaction may need to double check
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time") #not great
+
+out.ls.run.2.resp[[1]]<-calcR$summary
+out.ls.run.2.pnet[[1]]<-calcP$summary
+
+## column 2: run.2_64
+var<-colnames(df[3]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 10, to = 20, by = "time")
+calcP<-calc_rate(insp, from = 26, to = 40, by = "time")
+
+out.ls.run.2.resp[[2]]<-calcR$summary
+out.ls.run.2.pnet[[2]]<-calcP$summary
+
+## column 3: run.2_57
+var<-colnames(df[4]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var) 
+
+calcR<-calc_rate(insp, from = 10, to = 20, by = "time")
+calcP<-calc_rate(insp, from = 30, to = 40, by = "time")
+
+out.ls.run.2.resp[[3]]<-calcR$summary
+out.ls.run.2.pnet[[3]]<-calcP$summary
+
+## column 4: run.2_71
+var<-colnames(df[5]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.2.resp[[4]]<-calcR$summary
+out.ls.run.2.pnet[[4]]<-calcP$summary
+
+## column 5: run.2_62
+var<-colnames(df[6]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.2.resp[[5]]<-calcR$summary
+out.ls.run.2.pnet[[5]]<-calcP$summary
+
+## column 6: run.2_59
+var<-colnames(df[7]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 7, to = 20, by = "time")
+calcP<-calc_rate(insp, from = 28, to = 39, by = "time")
+
+out.ls.run.2.resp[[6]]<-calcR$summary
+out.ls.run.2.pnet[[6]]<-calcP$summary
+
+## column 7: run.2_48
+var<-colnames(df[8]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 19, by = "time")
+calcP<-calc_rate(insp, from = 32, to = 40, by = "time")
+
+out.ls.run.2.resp[[7]]<-calcR$summary
+out.ls.run.2.pnet[[7]]<-calcP$summary
+
+## column 8: run.2_42
+var<-colnames(df[9]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 10, to = 20, by = "time")
+calcP<-calc_rate(insp, from = 30, to = 40, by = "time")
+
+out.ls.run.2.resp[[8]]<-calcR$summary
+out.ls.run.2.pnet[[8]]<-calcP$summary
+
+## column 9: run.2_63
+var<-colnames(df[10]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 20, by = "time")
+calcP<-calc_rate(insp, from = 27, to = 35, by = "time")
+
+out.ls.run.2.resp[[9]]<-calcR$summary
+out.ls.run.2.pnet[[9]]<-calcP$summary
+
+
+##### pull together for output
+names(out.ls.run.2.resp)<-colnames(run2_wide[-1])
+names(out.ls.run.2.pnet)<-colnames(run2_wide[-1])
+
+#combine outputs into a df and add names
+df_r2.resp<-data.frame(do.call(rbind, out.ls.run.2.resp))
+df_r2.resp<- df_r2.resp %>%
+  mutate(names= names(out.ls.run.2.resp),
+         sample.or.bg= "sample")
+
+df_r2.pnet<-data.frame(do.call(rbind, out.ls.run.2.pnet))
+df_r2.pnet<- df_r2.pnet %>%
+  mutate(names= names(out.ls.run.2.pnet),
+         sample.or.bg= "sample")
+
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run 2 is a heated run (can see info in "run.info")
+df_r2.resp$resp.bg.corr<- df_r2.resp$rate - bg.HT.rates.means
+df_r2.pnet$pnet.bg.corr<- df_r2.pnet$rate - bg.HT.rates.means
+
+
 
 ######## ######## #####
 ######## run 3 ######## 
@@ -794,50 +1072,727 @@ df_r4.pnet<- df_r4.pnet %>%
   mutate(names= names(out.ls.run.4.pnet),
          sample.or.bg= "sample")
 
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run  is a ambient run (can see info in "run.info")
+df_r4.resp$resp.bg.corr<- df_r4.resp$rate - bg.amb.rates.means
+df_r4.pnet$pnet.bg.corr<- df_r4.pnet$rate - bg.amb.rates.means
 
 
 
 
 
+######## ######## #####
+######## run 6 ######## 
+######## ######## #####
+
+# resp output
+out.ls.run.6.resp <- vector("list")
+
+# pnet output
+out.ls.run.6.pnet <- vector("list")
+
+# define df and see how many column you have, this will be your length of the list
+df<-run6_wide
+ncol(df) 
+
+## column 1: run.6_54
+## run a sample for R, then P
+var<-colnames(df[2]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 13, by = "time")
+calcP<-calc_rate(insp, from = 18, to = 25, by = "time")
+
+out.ls.run.6.resp[[1]]<-calcR$summary
+out.ls.run.6.pnet[[1]]<-calcP$summary
+
+## column 2: run.6_32
+## run a sample for R, then P
+var<-colnames(df[3]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 16, to = 24, by = "time")
+
+out.ls.run.6.resp[[2]]<-calcR$summary
+out.ls.run.6.pnet[[2]]<-calcP$summary
+
+## column 3: run.6_65
+## run a sample for R, then P
+var<-colnames(df[4]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 16, to = 25, by = "time")
+
+out.ls.run.6.resp[[3]]<-calcR$summary
+out.ls.run.6.pnet[[3]]<-calcP$summary
+
+## column 4: run.6_41
+## run a sample for R, then P
+var<-colnames(df[5]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 13, by = "time")
+calcP<-calc_rate(insp, from = 16, to = 25, by = "time")
+
+out.ls.run.6.resp[[4]]<-calcR$summary
+out.ls.run.6.pnet[[4]]<-calcP$summary
+
+## column 5: run.6_9
+## run a sample for R, then P
+var<-colnames(df[6]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 24, by = "time")
+
+out.ls.run.6.resp[[5]]<-calcR$summary
+out.ls.run.6.pnet[[5]]<-calcP$summary
+
+## column 6: run.6_902
+## run a sample for R, then P
+var<-colnames(df[7]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 6, to = 14, by = "time")
+calcP<-calc_rate(insp, from = 18, to = 25, by = "time")
+
+out.ls.run.6.resp[[6]]<-calcR$summary
+out.ls.run.6.pnet[[6]]<-calcP$summary
+
+## column 7: run.6_6
+## run a sample for R, then P
+var<-colnames(df[8]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 12, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 25, by = "time")
+
+out.ls.run.6.resp[[7]]<-calcR$summary
+out.ls.run.6.pnet[[7]]<-calcP$summary
+
+## column 8: run.6_13
+## run a sample for R, then P
+var<-colnames(df[9]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 25, by = "time")
+
+out.ls.run.6.resp[[8]]<-calcR$summary
+out.ls.run.6.pnet[[8]]<-calcP$summary
+
+## column 9: run.6_35
+## run a sample for R, then P
+var<-colnames(df[10]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 14, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 24, by = "time")
+
+out.ls.run.6.resp[[9]]<-calcR$summary
+out.ls.run.6.pnet[[9]]<-calcP$summary
+
+## column 10: run.6_12
+## run a sample for R, then P
+var<-colnames(df[11]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 14, by = "time")
+calcP<-calc_rate(insp, from = 16, to = 25, by = "time")
+
+out.ls.run.6.resp[[10]]<-calcR$summary
+out.ls.run.6.pnet[[10]]<-calcP$summary
+
+#rate_adj <- adjust_rate(calcR, by = bg_rate, method = "mean")
+
+##### pull together for output
+names(out.ls.run.6.resp)<-colnames(run6_wide[-1])
+names(out.ls.run.6.pnet)<-colnames(run6_wide[-1])
+
+#combine outputs into a df and add names
+df_r6.resp<-data.frame(do.call(rbind, out.ls.run.6.resp))
+df_r6.resp<- df_r6.resp %>%
+  mutate(names= names(out.ls.run.6.resp),
+         sample.or.bg= "sample")
+
+df_r6.pnet<-data.frame(do.call(rbind, out.ls.run.6.pnet))
+df_r6.pnet<- df_r6.pnet %>%
+  mutate(names= names(out.ls.run.6.pnet),
+         sample.or.bg= "sample")
+
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run 6 is a ambient run (can see info in "run.info")
+df_r6.resp$resp.bg.corr<- df_r6.resp$rate - bg.amb.rates.means
+df_r6.pnet$pnet.bg.corr<- df_r6.pnet$rate - bg.amb.rates.means
 
 
-###########################################################
-##### separate data into individual runs and channels ##### 
-########################################################### 
+######## ######## #####
+######## run 7 ######## 
+######## ######## #####
 
-# probes can sometimes log incorrect data units for some reason as a glitch. 
-# make sure all data for O2 is in same units (umol O2/L)
-run.to.parse<- merge.dat[(merge.dat$O2_Unit=="μmol/L"),]
+# resp output
+out.ls.run.7.resp <- vector("list")
 
-# note that run 1 has some unit issues, overwrite and save the manual version
-run.1.manual<-merge.dat[(merge.dat$run=="run.1"),]
+# pnet output
+out.ls.run.7.pnet <- vector("list")
 
-#############
-# Alternative to above....
-# split all the data by runs
-# now all named as "run.#_respo" 
-# for (group_name in names(run_list)) {
-#  assign(paste0(group_name, "_respo"), run_list[[group_name]])}
-#################
+# define df and see how many column you have, this will be your length of the list
+df<-run7_wide
+ncol(df) 
 
-# now all named as "run.#_respo", with all channels
-# split the run by channel
-run.2.split<- split(run.2, run.2$Channel)
+## column 1: run.7_43
+## run a sample for R, then P
+var<-colnames(df[2]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var) #warning data not evenly spaced
 
-# split the run by channel
-# now all as "run#_ch#"
-for (group_name in names(run.2.split)) {
-  assign(paste0("run.2_ch", group_name), run.2.split[[group_name]])
-}
+calcR<-calc_rate(insp, from = 3, to = 13, by = "time")
+calcP<-calc_rate(insp, from = 17, to = 25, by = "time")
 
-# inspect and observe full data
-# add rownames for later calc assistance
-rownames(run.2_ch10) <- 1:nrow(run.2_ch10)
-run2.ch10.reg<-inspect(run.2_ch10, time = "delta.t.min", oxygen = "O2")
+out.ls.run.7.resp[[1]]<-calcR$summary
+out.ls.run.7.pnet[[1]]<-calcP$summary
 
-# rate for the entire dataset
-calc_rate(run2.ch10.reg)
+## column 2: run.7_47
+## run a sample for R, then P
+var<-colnames(df[3]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
 
-# reduce areas to plot and focus on regions
-calc_rate(run2.ch10.reg, from = 1203.667, to = 1222.567, by = "time")
-calc_rate(run2.ch10.reg, from = 50, to = 300, by = "row")
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 16, to = 24, by = "time")
+
+out.ls.run.7.resp[[2]]<-calcR$summary
+out.ls.run.7.pnet[[2]]<-calcP$summary
+
+## column 3: run.7_26
+## run a sample for R, then P
+var<-colnames(df[4]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var) 
+
+calcR<-calc_rate(insp, from = 5, to = 14, by = "time")
+calcP<-calc_rate(insp, from = 16, to = 24, by = "time")
+
+out.ls.run.7.resp[[3]]<-calcR$summary
+out.ls.run.7.pnet[[3]]<-calcP$summary
+
+## column 4: run.7_70
+## run a sample for R, then P
+var<-colnames(df[5]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 13, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 25, by = "time")
+
+out.ls.run.7.resp[[4]]<-calcR$summary
+out.ls.run.7.pnet[[4]]<-calcP$summary
+
+## column 5: run.7_68
+## run a sample for R, then P
+var<-colnames(df[6]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 13, by = "time")
+calcP<-calc_rate(insp, from = 17, to = 25, by = "time")
+
+out.ls.run.7.resp[[5]]<-calcR$summary
+out.ls.run.7.pnet[[5]]<-calcP$summary
+
+## column 6: run.7_27
+## run a sample for R, then P
+var<-colnames(df[7]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 13, by = "time")
+calcP<-calc_rate(insp, from = 17, to = 23, by = "time")
+
+out.ls.run.7.resp[[6]]<-calcR$summary
+out.ls.run.7.pnet[[6]]<-calcP$summary
+
+## column 7: run.7_14
+## run a sample for R, then P
+var<-colnames(df[8]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 12, by = "time")
+calcP<-calc_rate(insp, from = 17, to = 24, by = "time")
+
+out.ls.run.7.resp[[7]]<-calcR$summary
+out.ls.run.7.pnet[[7]]<-calcP$summary
+
+## column 8: run.7_58
+## run a sample for R, then P
+var<-colnames(df[9]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 25, by = "time")
+
+out.ls.run.7.resp[[8]]<-calcR$summary
+out.ls.run.7.pnet[[8]]<-calcP$summary
+
+## column 9: run.7_38
+## run a sample for R, then P
+var<-colnames(df[10]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 14, by = "time")
+calcP<-calc_rate(insp, from = 15, to = 25, by = "time")
+
+out.ls.run.7.resp[[9]]<-calcR$summary
+out.ls.run.7.pnet[[9]]<-calcP$summary
+
+## column 10: run.7_50
+## run a sample for R, then P
+var<-colnames(df[11]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 12, by = "time")
+calcP<-calc_rate(insp, from = 17, to = 24, by = "time")
+
+out.ls.run.7.resp[[10]]<-calcR$summary
+out.ls.run.7.pnet[[10]]<-calcP$summary
+
+#rate_adj <- adjust_rate(calcR, by = bg_rate, method = "mean")
+
+##### pull together for output
+names(out.ls.run.7.resp)<-colnames(run7_wide[-1])
+names(out.ls.run.7.pnet)<-colnames(run7_wide[-1])
+
+#combine outputs into a df and add names
+df_r7.resp<-data.frame(do.call(rbind, out.ls.run.7.resp))
+df_r7.resp<- df_r7.resp %>%
+  mutate(names= names(out.ls.run.7.resp),
+         sample.or.bg= "sample")
+
+df_r7.pnet<-data.frame(do.call(rbind, out.ls.run.7.pnet))
+df_r7.pnet<- df_r7.pnet %>%
+  mutate(names= names(out.ls.run.7.pnet),
+         sample.or.bg= "sample")
+
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run 7 is a ambient run (can see info in "run.info")
+df_r7.resp$resp.bg.corr<- df_r7.resp$rate - bg.amb.rates.means
+df_r7.pnet$pnet.bg.corr<- df_r7.pnet$rate - bg.amb.rates.means
+
+
+
+######## ######## #####
+######## run 9 ######## 
+######## ######## #####
+
+# resp output
+out.ls.run.9.resp <- vector("list")
+
+# pnet output
+out.ls.run.9.pnet <- vector("list")
+
+# define df and see how many column you have, this will be your length of the list
+df<-run9_wide
+ncol(df) 
+
+## column 1: run.9_56
+## run a sample for R, then P
+var<-colnames(df[2]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 3, to = 13, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[1]]<-calcR$summary
+out.ls.run.9.pnet[[1]]<-calcP$summary
+
+## column 2: run.9_67
+var<-colnames(df[3]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[2]]<-calcR$summary
+out.ls.run.9.pnet[[2]]<-calcP$summary
+
+## column 3: run.9_39
+var<-colnames(df[4]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var) 
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[3]]<-calcR$summary
+out.ls.run.9.pnet[[3]]<-calcP$summary
+
+## column 4: run.9_50.r2
+var<-colnames(df[5]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[4]]<-calcR$summary
+out.ls.run.9.pnet[[4]]<-calcP$summary
+
+## column 5: run.9_53
+var<-colnames(df[6]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[5]]<-calcR$summary
+out.ls.run.9.pnet[[5]]<-calcP$summary
+
+## column 6: run.9_52
+var<-colnames(df[7]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 6, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[6]]<-calcR$summary
+out.ls.run.9.pnet[[6]]<-calcP$summary
+
+## column 7: run.9_1
+var<-colnames(df[8]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[7]]<-calcR$summary
+out.ls.run.9.pnet[[7]]<-calcP$summary
+
+## column 8: run.9_16
+var<-colnames(df[9]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[8]]<-calcR$summary
+out.ls.run.9.pnet[[8]]<-calcP$summary
+
+## column 9: run.9_19
+var<-colnames(df[10]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[9]]<-calcR$summary
+out.ls.run.9.pnet[[9]]<-calcP$summary
+
+## column 10: run.9_24
+var<-colnames(df[11]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.9.resp[[10]]<-calcR$summary
+out.ls.run.9.pnet[[10]]<-calcP$summary
+
+##### pull together for output
+names(out.ls.run.9.resp)<-colnames(run9_wide[-1])
+names(out.ls.run.9.pnet)<-colnames(run9_wide[-1])
+
+#combine outputs into a df and add names
+df_r9.resp<-data.frame(do.call(rbind, out.ls.run.9.resp))
+df_r9.resp<- df_r9.resp %>%
+  mutate(names= names(out.ls.run.9.resp),
+         sample.or.bg= "sample")
+
+df_r9.pnet<-data.frame(do.call(rbind, out.ls.run.9.pnet))
+df_r9.pnet<- df_r9.pnet %>%
+  mutate(names= names(out.ls.run.9.pnet),
+         sample.or.bg= "sample")
+
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run 9 is a ambient run (can see info in "run.info")
+df_r9.resp$resp.bg.corr<- df_r9.resp$rate - bg.amb.rates.means
+df_r9.pnet$pnet.bg.corr<- df_r9.pnet$rate - bg.amb.rates.means
+
+######## ######## #####
+######## run 10 ######## 
+######## ######## #####
+
+# resp output
+out.ls.run.10.resp <- vector("list")
+
+# pnet output
+out.ls.run.10.pnet <- vector("list")
+
+# define df and see how many column you have, this will be your length of the list
+df<-run10_wide
+ncol(df) 
+
+## column 1: run.10_60
+## run a sample for R, then P
+var<-colnames(df[2]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.10.resp[[1]]<-calcR$summary
+out.ls.run.10.pnet[[1]]<-calcP$summary
+
+## column 2: run.10_67.r2
+var<-colnames(df[3]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.10.resp[[2]]<-calcR$summary
+out.ls.run.10.pnet[[2]]<-calcP$summary
+
+## column 3: run.10_31
+var<-colnames(df[4]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var) 
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.10.resp[[3]]<-calcR$summary
+out.ls.run.10.pnet[[3]]<-calcP$summary
+
+## column 4: run.10_16.r2
+var<-colnames(df[5]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 27, to = 35, by = "time")
+
+out.ls.run.10.resp[[4]]<-calcR$summary
+out.ls.run.10.pnet[[4]]<-calcP$summary
+
+## column 5: run.10_33
+var<-colnames(df[6]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.10.resp[[5]]<-calcR$summary
+out.ls.run.10.pnet[[5]]<-calcP$summary
+
+## column 6: run.10_22
+var<-colnames(df[7]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time") #weirdo
+calcP<-calc_rate(insp, from = 31, to = 39, by = "time")
+
+out.ls.run.10.resp[[6]]<-calcR$summary
+out.ls.run.10.pnet[[6]]<-calcP$summary
+
+## column 7: run.10_18
+var<-colnames(df[8]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.10.resp[[7]]<-calcR$summary
+out.ls.run.10.pnet[[7]]<-calcP$summary
+
+## column 8: run.10_29
+var<-colnames(df[9]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.10.resp[[8]]<-calcR$summary
+out.ls.run.10.pnet[[8]]<-calcP$summary
+
+## column 9: run.10_53.r2
+var<-colnames(df[10]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 15, by = "time")
+calcP<-calc_rate(insp, from = 25, to = 35, by = "time")
+
+out.ls.run.10.resp[[9]]<-calcR$summary
+out.ls.run.10.pnet[[9]]<-calcP$summary
+
+
+##### pull together for output
+names(out.ls.run.10.resp)<-colnames(run10_wide[-1])
+names(out.ls.run.10.pnet)<-colnames(run10_wide[-1])
+
+#combine outputs into a df and add names
+df_r10.resp<-data.frame(do.call(rbind, out.ls.run.10.resp))
+df_r10.resp<- df_r10.resp %>%
+  mutate(names= names(out.ls.run.10.resp),
+         sample.or.bg= "sample")
+
+df_r10.pnet<-data.frame(do.call(rbind, out.ls.run.10.pnet))
+df_r10.pnet<- df_r10.pnet %>%
+  mutate(names= names(out.ls.run.10.pnet),
+         sample.or.bg= "sample")
+
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run 10 is a ambient run (can see info in "run.info")
+df_r10.resp$resp.bg.corr<- df_r10.resp$rate - bg.amb.rates.means
+df_r10.pnet$pnet.bg.corr<- df_r10.pnet$rate - bg.amb.rates.means
+
+
+######## ######## #####
+######## run 11 ######## 
+######## ######## #####
+
+# resp output
+out.ls.run.11.resp <- vector("list")
+
+# pnet output
+out.ls.run.11.pnet <- vector("list")
+
+# define df and see how many column you have, this will be your length of the list
+df<-run11_wide
+ncol(df) 
+
+## column 1: run.11_8
+## run a sample for R, then P
+var<-colnames(df[2]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 25, by = "time")
+calcP<-calc_rate(insp, from = 35, to = 45, by = "time")
+
+out.ls.run.11.resp[[1]]<-calcR$summary
+out.ls.run.11.pnet[[1]]<-calcP$summary
+
+## column 2: run.11_22.r2
+var<-colnames(df[3]) # set your column each time
+insp<-inspect(df, time = "time.min", oxygen = var)
+
+calcR<-calc_rate(insp, from = 5, to = 20, by = "time")
+calcP<-calc_rate(insp, from = 35, to = 45, by = "time")
+
+out.ls.run.11.resp[[2]]<-calcR$summary
+out.ls.run.11.pnet[[2]]<-calcP$summary
+
+
+##### pull together for output
+names(out.ls.run.11.resp)<-colnames(run11_wide[-1])
+names(out.ls.run.11.pnet)<-colnames(run11_wide[-1])
+
+#combine outputs into a df and add names
+df_r11.resp<-data.frame(do.call(rbind, out.ls.run.11.resp))
+df_r11.resp<- df_r11.resp %>%
+  mutate(names= names(out.ls.run.11.resp),
+         sample.or.bg= "sample")
+
+df_r11.pnet<-data.frame(do.call(rbind, out.ls.run.11.pnet))
+df_r11.pnet<- df_r11.pnet %>%
+  mutate(names= names(out.ls.run.11.pnet),
+         sample.or.bg= "sample")
+
+### to correct for controls, use the correct control rates for amb or HT
+bg.amb.rates.means
+bg.HT.rates.means
+
+# run 11 is a ambient run (can see info in "run.info")
+df_r11.resp$resp.bg.corr<- df_r11.resp$rate - bg.amb.rates.means
+df_r11.pnet$pnet.bg.corr<- df_r11.pnet$rate - bg.amb.rates.means
+
+
+
+#############################
+# create final dataframe outputs #
+#############################
+
+pnet_df = bind_rows(df_r1.pnet, df_r2.pnet, df_r3.pnet, df_r4.pnet, df_r6.pnet, df_r7.pnet, df_r9.pnet, df_r10.pnet, df_r11.pnet)
+resp_df = bind_rows(df_r1.resp, df_r2.resp, df_r3.resp, df_r4.resp, df_r6.resp, df_r7.resp, df_r9.resp, df_r10.resp, df_r11.resp)
+
+#separate names into run and plug.ID
+pnet_df = pnet_df %>%
+  separate(names, into = c("run", "plug.ID"), sep = "_", remove = FALSE)
+resp_df = resp_df %>%
+  separate(names, into = c("run", "plug.ID"), sep = "_", remove = FALSE)
+
+#make a rerun column (TRUE/FALSE), then strip the .r2
+pnet_df = pnet_df %>%
+  mutate(rerun   = grepl("\\.r2$", plug.ID),
+         plug.ID = sub("\\.r2$", "", plug.ID))
+resp_df = resp_df %>%
+  mutate(rerun   = grepl("\\.r2$", plug.ID),
+         plug.ID = sub("\\.r2$", "", plug.ID))
+
+#keep the rerun when one exists, otherwise keep the original
+pnet_df = pnet_df %>%
+  group_by(plug.ID) %>%
+  filter(rerun | !any(rerun)) %>%
+  ungroup()
+resp_df = resp_df %>%
+  group_by(plug.ID) %>%
+  filter(rerun | !any(rerun)) %>%
+  ungroup()
+
+#now merge in tank.ID and tank.treatment
+pnet_df = pnet_df %>%
+  left_join(run.info %>% select(plug.ID, tank.ID, tank.treatment), by = "plug.ID")
+resp_df = resp_df %>%
+  left_join(run.info %>% select(plug.ID, tank.ID, tank.treatment), by = "plug.ID")
+
+write.csv(pnet_df, "output/pnet_rates.csv", row.names = FALSE)
+write.csv(resp_df, "output/resp_rates.csv", row.names = FALSE)
+
+
+
+# ###########################################################
+# ##### separate data into individual runs and channels ##### 
+# ########################################################### 
+# 
+# # probes can sometimes log incorrect data units for some reason as a glitch. 
+# # make sure all data for O2 is in same units (umol O2/L)
+# run.to.parse<- merge.dat[(merge.dat$O2_Unit=="μmol/L"),]
+# 
+# # note that run 1 has some unit issues, overwrite and save the manual version
+# run.1.manual<-merge.dat[(merge.dat$run=="run.1"),]
+# 
+# #############
+# # Alternative to above....
+# # split all the data by runs
+# # now all named as "run.#_respo" 
+# # for (group_name in names(run_list)) {
+# #  assign(paste0(group_name, "_respo"), run_list[[group_name]])}
+# #################
+# 
+# # now all named as "run.#_respo", with all channels
+# # split the run by channel
+# run.2.split<- split(run.2, run.2$Channel)
+# 
+# # split the run by channel
+# # now all as "run#_ch#"
+# for (group_name in names(run.2.split)) {
+#   assign(paste0("run.2_ch", group_name), run.2.split[[group_name]])
+# }
+# 
+# # inspect and observe full data
+# # add rownames for later calc assistance
+# rownames(run.2_ch10) <- 1:nrow(run.2_ch10)
+# run2.ch10.reg<-inspect(run.2_ch10, time = "delta.t.min", oxygen = "O2")
+# 
+# # rate for the entire dataset
+# calc_rate(run2.ch10.reg)
+# 
+# # reduce areas to plot and focus on regions
+# calc_rate(run2.ch10.reg, from = 1203.667, to = 1222.567, by = "time")
+# calc_rate(run2.ch10.reg, from = 50, to = 300, by = "row")
